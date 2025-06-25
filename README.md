@@ -10,10 +10,6 @@ Catálogo de livros onde os usuários podem registrar livros em uma base de dado
 * Listagem de todos os livros registrados.
 * Visualização de autores e listagem de autores vivos por ano.
 * Busca de livros por idioma.
-* Gerar estatísticas com base nas downloads.
-* Listar os 10 livros mais registrados.
-* Buscar autor por nome.
-* Visualização de autores e listagem de autores falecidos por ano.
 * Opção para sair da aplicação.
 
 ### Tecnologias utilizadas
