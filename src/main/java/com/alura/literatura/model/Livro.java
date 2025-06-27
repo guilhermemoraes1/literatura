@@ -11,7 +11,7 @@ public class Livro {
     @Column(unique=true)
     private String title;
     private String language;
-    private String download_count;
+    private long download_count;
 
     @ManyToOne
     private Autor autor;
@@ -19,9 +19,9 @@ public class Livro {
     public Livro() {}
 
     public Livro (DadosLivro dadosLivro) {
-        this.title = dadosLivro.resultado().getFirst().title();
-        this.language = dadosLivro.resultado().getFirst().languages().getFirst();
-        this.download_count = dadosLivro.resultado().getFirst().download_count();
+        this.title = dadosLivro.title();
+        this.language = dadosLivro.languages().getFirst();
+        this.download_count = dadosLivro.download_count();
     }
 
     @Override
@@ -43,7 +43,7 @@ public class Livro {
         return title;
     }
 
-    public String getDownload_count() {
+    public long getDownload_count() {
         return download_count;
     }
 
@@ -54,4 +54,6 @@ public class Livro {
     public Autor getAutor() {
         return autor;
     }
+
+    public String getLanguage() { return language; }
 }

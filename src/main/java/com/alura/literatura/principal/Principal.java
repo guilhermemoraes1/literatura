@@ -7,6 +7,8 @@ import com.alura.literatura.repository.AutorRepository;
 import com.alura.literatura.repository.LivroRepository;
 import com.alura.literatura.service.ConsumoApi;
 import com.alura.literatura.service.ConverteDados;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +18,6 @@ import java.util.Scanner;
 public class Principal {
     private Scanner leitura = new Scanner(System.in);
     private ConsumoApi consumo = new ConsumoApi();
-    private List<DadosLivro> dadosLivro = new ArrayList<>();
     ConverteDados conversor = new ConverteDados();
     private LivroRepository repositorioLivro;
     private AutorRepository repositorioAutor;
@@ -60,22 +61,27 @@ public class Principal {
                     case 5:
                         listarIdiomas();
                         break;
+                    case 0:
+                        System.out.println("Programa finalizado.");
+                        break;
                     default:
                         System.out.println("Opção inválida");
                         break;
                 }
-
-
         }
-
     }
 
     private void buscarLivroWeb() {
         DadosLivro dados = getDadosLivro();
+        if (dados == null) {
+            System.out.println("Nenhum dado do livro retornado.");
+            return;
+        }
 
-        var resultado = dados.resultado().getFirst();
-        String nomeAutor = resultado.authors().getFirst().name();
-        String tituloLivro = resultado.title();
+        String nomeAutor = (dados.authors() != null && !dados.authors().isEmpty())
+                ? dados.authors().getFirst().name()
+                : "Autor Desconhecido";
+        String tituloLivro = dados.title();
 
         // Verificar se o autor já existe
         Autor autor = repositorioAutor.findByName(nomeAutor)
@@ -97,16 +103,41 @@ public class Principal {
 
         repositorioLivro.save(novoLivro);
         System.out.println("Livro salvo com sucesso!");
-
     }
+
 
     private DadosLivro getDadosLivro() {
         System.out.println("Digite o nome do livro que você deseja procurar");
         var nomeLivro = leitura.nextLine();
         String ENDERECO = "https://gutendex.com/books/?search=";
         var json = consumo.obterDados(ENDERECO + nomeLivro.replace(" ", "+"));
-        return conversor.obterDados(json, DadosLivro.class);
+
+        try {
+            // Cria o ObjectMapper
+            ObjectMapper mapper = new ObjectMapper();
+
+            // Lê a resposta como árvore JSON
+            JsonNode raiz = mapper.readTree(json);
+
+            // Acessa o array "results"
+            JsonNode results = raiz.get("results");
+
+            // Verifica se tem pelo menos um item
+            if (results != null && results.isArray() && !results.isEmpty()) {
+                JsonNode primeiroLivro = results.get(0);
+
+                // Converte o primeiro resultado para DadosLivro
+                return mapper.treeToValue(primeiroLivro, DadosLivro.class);
+            } else {
+                System.out.println("Nenhum livro encontrado.");
+                return null;
+            }
+        } catch (Exception e) {
+            System.out.println("Erro ao processar os dados do livro: " + e.getMessage());
+            return null;
+        }
     }
+
 
     private void listarLivrosBuscados() {
         livros = repositorioLivro.findAll();
@@ -118,14 +149,9 @@ public class Principal {
         autores.forEach(System.out::println);
     }
 
-    private List<String> getLivrosPorAutor(String autor) {
-        List<String> livros = new ArrayList<>();
-        dadosLivro.stream().filter(l -> l.resultado().getFirst().authors().getFirst().name().equals(autor))
-                .forEach(l -> livros.add(l.resultado().getFirst().title()));
-                return livros;
-    }
 
     private void listarAutorPorAno() {
+        System.out.println("Digite o ano que deseja pesquisar: ");
         var opcao = leitura.nextInt();
         leitura.nextLine();
         List<Autor> autores = repositorioAutor.findAll();
@@ -166,10 +192,6 @@ public class Principal {
         } else {
             System.out.println("Resposta inválida " + opcao);
         }
-    }
-
-    private void listarLivrosPeloIdioma(String idioma) {
-        dadosLivro.stream().filter(l -> l.resultado().getFirst().languages().getFirst().equals(idioma)).forEach(System.out::println);
     }
 
 

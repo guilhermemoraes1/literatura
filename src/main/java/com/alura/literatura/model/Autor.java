@@ -22,9 +22,9 @@ public class Autor {
     public Autor() {}
 
     public Autor(DadosLivro dadosLivro) {
-        this.name = dadosLivro.resultado().getFirst().authors().getFirst().name();
-        this.birth_year = dadosLivro.resultado().getFirst().authors().getFirst().birth_year();
-        this.death_year = dadosLivro.resultado().getFirst().authors().getFirst().death_year();
+        this.name = dadosLivro.authors().getFirst().name();
+        this.birth_year = dadosLivro.authors().getFirst().birth_year();
+        this.death_year = dadosLivro.authors().getFirst().death_year();
     }
 
 
